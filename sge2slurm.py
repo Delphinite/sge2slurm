@@ -3,6 +3,41 @@
 import sys
 import re
 
+"""
+Translates SGE batch script to Slurm
+
+Derived from https://github.com/NIH-HPC/pbs2slurm/blob/master/pbs2slurm.py
+
+The SGE script is split into 
+- a shebang line
+- a header containing all the SGE options denoted by #$
+- the commands the script actually executes
+
+The script then:
+- Outputs the shebang line. If no shebang line was detected a default
+  of #!/bin/bash is added.
+- Translates #$ directives into their #SBATCH counterparts when 
+  applicable. Note that not all options are handled in this script.
+  For a full list of SBATCH directives see the Slurm documentation at:
+  https://slurm.schedmd.com/sbatch.html
+- Translates common SGE environment variables into their Slurm 
+  counterparts
+
+If no input file is provided, sge2slurm will read from stdin.
+
+All output is sent directly to stdout i.e the console. sge2slurm should
+not overwrite the script unless directed by the user.
+
+Please be sure to manually go over translated scripts and make any 
+neccesary corrections.
+
+Examples:
+    sge2slurm sge_script
+    sge2slurm < sge_script > slurm_script
+    sge2slurm sge_script > slurm_script
+    sge2slurm -s /bin/zsh sge_script > slurm_script
+
+"""
 __version__ = 1.0
 __author__ = "Cameron Fritz"
 
