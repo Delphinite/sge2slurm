@@ -181,7 +181,6 @@ def fix_resources(sge_options):
           lower than expected."""
     resource_re = re.compile(r'^#\$[ \t]*-l[ \t]*(\S*)[^\n]*', re.M)
     match = resource_re.search(sge_options)
-    vendor_re = re.compile(r'vendor=(\S*)')
     mem_re = re.compile(r'm_mem_free=(\d+)(\w+)')
     h_rt_re = re.compile(r'h_rt=(\d+):(\d+):(\d+)')
     only_seconds_re = re.compile(r'h_rt=(\d+)')
@@ -191,12 +190,6 @@ def fix_resources(sge_options):
         def _repl(m):
             new_resources = []
             resources = m.group(1)
-            # Handle vendor
-            if "vendor" in resources:
-                vendor_m = vendor_re.search(resources)
-                if vendor_m is not None:
-                    warn("Vendor tag may be handled under partition in Slurm")
-                    new_resources.append("#SBATCH --gres=vendor:{}".format(vendor_m.group(1)))
             
             # Handle memory, note memory is handled differently in SGE than Slurm
             if "m_mem_free" in resources:
@@ -237,7 +230,7 @@ def fix_resources(sge_options):
                 gpu_m = gpu_re.search(resources)
                 if gpu_m == None:
                     info("$SBATCH --gpus can be modified to request type of gpu")
-                    new_resources.append("#SBATCH --gpus={}".format(gpu_m.group(1)))
+                    new_resources.append("#SBATCH --gres=gpus:{}".format(gpu_m.group(1)))
 
             return "\n".join(new_resources)
         sge_options = resource_re.sub(_repl, sge_options)
