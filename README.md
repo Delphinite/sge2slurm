@@ -49,9 +49,9 @@
 
 ## sge2slurm notes
 * SGE directives in batch script use a more relaxed grammar than command line switches. For example all of the following will be correctly translated:
-** #$ -o foo
-** #$ -ofoo
-** #$-ofoo
+  * #$ -o foo
+  * #$ -ofoo
+  * #$-ofoo
 
 * This script does not handle every possible option just ones that I have personally encountered. 
 
