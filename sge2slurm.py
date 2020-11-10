@@ -230,7 +230,8 @@ def fix_resources(sge_options):
                 gpu_m = gpu_re.search(resources)
                 if gpu_m == None:
                     info("$SBATCH --gpus can be modified to request type of gpu")
-                    new_resources.append("#SBATCH --gres=gpus:{}".format(gpu_m.group(1)))
+                else:
+                    new_resources.append("#SBATCH --gres=gpu:{}".format(gpu_m.group(1)))
 
             return "\n".join(new_resources)
         sge_options = resource_re.sub(_repl, sge_options)
