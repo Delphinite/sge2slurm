@@ -238,11 +238,11 @@ def fix_resources(sge_options):
     return sge_options
 
 def fix_slots(sge_options):
-    """Translates #$ -pe into #SBATCH -N and #SBATCH --ntasks-per-node
+    """Translates #$ -pe into #SBATCH --nodes and #SBATCH --ntasks-per-node
     NOTE: Only handles fixed and shm PEs. 
           For all other PEs will default to: 
-          #SBATCH -N 1
-          #SBATCH --ntasks-per-node 16"""
+          #SBATCH --nodes=1
+          #SBATCH --ntasks-per-node=16"""
     pe_re = re.compile(r'#\$[ \t]*-pe[ \t]*(\S*)[ \t](\d+)[^\n]*')
     def _repl(m):
         if m.group(1) == "":
@@ -254,10 +254,10 @@ def fix_slots(sge_options):
                 total_slots = int(total_slots)
                 warn("Assumption of max 16 slots per node. Make corrections as necessary")
                 if total_slots <= 16:
-                    return "#SBATCH -N 1\n#SBATCH --ntasks-per-node {}\n".format(total_slots)
+                    return "#SBATCH --nodes=1\n#SBATCH --ntasks-per-node {}\n".format(total_slots)
                 else:
                     nodes = total_slots // 16
-                    return "#SBATCH -N {}\n#SBATCH --ntasks-per-node {}\n".format(nodes, 16)
+                    return "#SBATCH --nodes{}\n#SBATCH --ntasks-per-node {}\n".format(nodes, 16)
             except ValueError:
                 error("Invalid value for pe slots. Slots must be an integer")
                 return ""
@@ -268,13 +268,13 @@ def fix_slots(sge_options):
                 fixed_num = int(fixed_num)
                 total_slots = int(total_slots)
                 num_nodes = total_slots // fixed_num
-                return "#SBATCH -N {}\n#SBATCH --ntasks-per-node {}\n".format(num_nodes, fixed_num)
+                return "#SBATCH --nodes={}\n#SBATCH --ntasks-per-node {}\n".format(num_nodes, fixed_num)
             except ValueError:
                 error("Invalid value for pe slots. Slots must be an integer")
                 return ""
         else:
             warn("Only fixed and shm PEs are handled in this script. Please make corrections yourself. Defaulting to 1 node with 16 slots.")
-            return "#SBATCH -N 1\n#SBATCH --ntasks-per-node 16\n"
+            return "#SBATCH --nodes=1\n#SBATCH --ntasks-per-node 16\n"
     return pe_re.sub(_repl, sge_options)
 
 def fix_restart(sge_options):
