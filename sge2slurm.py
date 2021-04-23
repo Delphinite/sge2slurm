@@ -159,7 +159,7 @@ def fix_email_notifications(sge_options):
     return notification_re.sub(_repl, sge_options)
 
 def fix_account(sge_options):
-    """Translates #$ -P into #SBATCH -A"""
+    """Translates #$ -P into #SBATCH --account"""
     account_re = re.compile(r'^#\$[ \t]*-P[ \t]*(\S*)[^\n]*', re.M)
     def _repl(m):
         if m.group(1) == "":
@@ -170,7 +170,7 @@ def fix_account(sge_options):
                 account = m.group(1).replace("Prj", "Grp")
             else:
                 account = m.group(1)
-            return '#SBATCH -A {}'.format(account)
+            return '#SBATCH --account={}'.format(account)
     return account_re.sub(_repl, sge_options)
 
 def fix_resources(sge_options):
@@ -254,10 +254,10 @@ def fix_slots(sge_options):
                 total_slots = int(total_slots)
                 warn("Assumption of max 16 slots per node. Make corrections as necessary")
                 if total_slots <= 16:
-                    return "#SBATCH --nodes=1\n#SBATCH --ntasks-per-node {}\n".format(total_slots)
+                    return "#SBATCH --nodes=1\n#SBATCH --ntasks-per-node={}\n".format(total_slots)
                 else:
                     nodes = total_slots // 16
-                    return "#SBATCH --nodes{}\n#SBATCH --ntasks-per-node {}\n".format(nodes, 16)
+                    return "#SBATCH --nodes{}\n#SBATCH --ntasks-per-node={}\n".format(nodes, 16)
             except ValueError:
                 error("Invalid value for pe slots. Slots must be an integer")
                 return ""
@@ -268,7 +268,7 @@ def fix_slots(sge_options):
                 fixed_num = int(fixed_num)
                 total_slots = int(total_slots)
                 num_nodes = total_slots // fixed_num
-                return "#SBATCH --nodes={}\n#SBATCH --ntasks-per-node {}\n".format(num_nodes, fixed_num)
+                return "#SBATCH --nodes={}\n#SBATCH --ntasks-per-node={}\n".format(num_nodes, fixed_num)
             except ValueError:
                 error("Invalid value for pe slots. Slots must be an integer")
                 return ""
@@ -293,7 +293,7 @@ def fix_restart(sge_options):
     return restart_re.sub(_repl, sge_options)
 
 def fix_output_stream(sge_options):
-    """Translates #$ -o, #$ -e, #$ -j into #SBATCH -o and #SBATCH -e
+    """Translates #$ -o, #$ -e, #$ -j into #SBATCH --output and #SBATCH --error
     NOTE: Slurm output streams are joined by default."""
     out_re = re.compile(r'^#\$[ \t]*-o[ \t]*(\S*)[^\n]*', re.M)
     err_re = re.compile(r'^#\$[ \t]*-e[ \t]*(\S*)[^\n]*', re.M)
@@ -311,7 +311,7 @@ def fix_output_stream(sge_options):
             warn("#$ -o with no argument")
             return ""
         else:
-            return "#SBATCH -o {}".format(m.group(1))
+            return "#SBATCH --output={}".format(m.group(1))
     sge_options = out_re.sub(_repl, sge_options)
     
     # Fix the -e directive
@@ -320,13 +320,13 @@ def fix_output_stream(sge_options):
             warn("#$ -e with no argument")
             return ""
         else:
-            return "#SBATCH -e {}".format(m.group(1))
+            return "#SBATCH --error={}".format(m.group(1))
     sge_options = err_re.sub(_repl, sge_options)
     
     return sge_options
 
 def fix_partition(sge_options):
-    """Translates #$ -q into #SBATCH -p"""
+    """Translates #$ -q into #SBATCH --partition"""
     partition_re = re.compile(r'#\$[ \t]*-q[ \t]*(\S*)[^\n]*')
     def _repl(m):
         if m.group(1) == "":
@@ -334,7 +334,7 @@ def fix_partition(sge_options):
             return ""
         else:
             info("Partition names in Slurm may be different than queue names in SGE")
-            return "#SBATCH -p {}".format(m.group(1))
+            return "#SBATCH --partition={}".format(m.group(1))
         return
     return partition_re.sub(_repl, sge_options)
 
