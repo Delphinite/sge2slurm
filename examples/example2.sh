@@ -3,7 +3,7 @@
 #$ -cwd
 #$ -j y
 #$ -o output.txt
-#$ -M test@domain.com
+#$ -M test@example.com
 #$ -m be
 #$ -P testPrj
 #$ -pe fixed16 48
