@@ -21,5 +21,9 @@ hello=HELLO
 echo $TMP
 echo $TMPDIR
 echo $SGE_O_WORKDIR
+echo $SGE_TASK_ID
+echo $SGE_TASK_FIRST
+echo $SGE_TASK_LAST
+echo $SGE_TASK_STEPSIZE
 
 echo $hello
