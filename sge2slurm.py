@@ -369,15 +369,16 @@ def convert_script(script, interpreter="/bin/bash"):
         sge_options = fix_output_stream(sge_options)
         sge_options = fix_partition(sge_options)
         sge_options = fix_array(sge_options)
-        slurm_script = "{}\n{}\n{}".format(shebang, sge_options, commands)
+        slurm_script = "{}\n{}".format(shebang, sge_options)
     else:
-        slurm_script = "{}\{}".format(shebang, commands)
+        slurm_script = shebang
 
     # remove blank lines
     lines = slurm_script.split("\n")
     non_empty_lines = [line for line in lines if line.strip() != ""]
 
     slurm_script = "\n".join(non_empty_lines)
+    slurm_script += "\n\n{}".format(commands)
 
     return slurm_script
    
