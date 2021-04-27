@@ -80,6 +80,9 @@ def fix_commands(commands):
     """Translate SGE environment variables into their Slurm counterparts"""
     repl = {
         "SGE_O_WORKDIR" : "SLURM_SUBMIT_DIR", #General variable changes
+        "SGE_O_HOST" : "SLURM_SUBMIT_HOST",
+        "SGE_O_LOGNAME" : "SLURM_JOB_USER",
+        "SGE_CWD_PATH" : "SLURM_SUBMIT_DIR",
         "JOB_ID" : "SLURM_JOB_ID",
         "JOB_NAME": "SLURM_JOB_NAME",
         "NHOSTS" : "SLURM_JOB_NUM_NODES",
