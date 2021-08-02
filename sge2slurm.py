@@ -2,6 +2,7 @@
 
 import sys
 import re
+import math
 
 """
 Translates SGE batch script to Slurm
@@ -245,9 +246,14 @@ def fix_slots(sge_options):
     NOTE: Only handles fixed and shm PEs. 
           For all other PEs will default to: 
           #SBATCH --nodes=1
-          #SBATCH --ntasks-per-node=16"""
+          #SBATCH --ntasks-per-node=1
+          #SBATCH --cpus-per-task=48"""
     pe_re = re.compile(r'#\$[ \t]*-pe[ \t]*(\S*)[ \t](\d+)[^\n]*')
     def _repl(m):
+        # Proteus slots per node = 16
+        proteus_slots_per_node = 16
+        # Picotte slots per node = 48
+        picotte_slots_per_node = 48
         if m.group(1) == "":
             warn("#$ -pe has no argument")
             return ""
@@ -255,29 +261,34 @@ def fix_slots(sge_options):
             total_slots = m.group(2)
             try:
                 total_slots = int(total_slots)
-                warn("Assumption of max 16 slots per node. Make corrections as necessary")
-                if total_slots <= 16:
-                    return "#SBATCH --nodes=1\n#SBATCH --ntasks-per-node={}\n".format(total_slots)
+                warn(f"Assumption of max {picotte_slots_per_node}  slots per node. Make corrections as necessary")
+                if total_slots <= picotte_slots_per_node:
+                    return "#SBATCH --nodes=1\n#SBATCH --ntasks-per-node=1\n#SBATCH --cpus-per-task={}".format(total_slots)
                 else:
-                    nodes = total_slots // 16
-                    return "#SBATCH --nodes{}\n#SBATCH --ntasks-per-node={}\n".format(nodes, 16)
+                    nodes = total_slots // proteus_slots_per_node
+                    return "#SBATCH --nodes{}\n#SBATCH --ntasks-per-node={}\n".format(nodes, picotte_slots_per_node)
             except ValueError:
                 error("Invalid value for pe slots. Slots must be an integer")
                 return ""
         elif m.group(1).startswith("fixed"):
             fixed_num = m.group(1)[5:]
             total_slots = m.group(2)
+            retval = ""
             try:
                 fixed_num = int(fixed_num)
                 total_slots = int(total_slots)
-                num_nodes = total_slots // fixed_num
-                return "#SBATCH --nodes={}\n#SBATCH --ntasks-per-node={}\n".format(num_nodes, fixed_num)
+                if total_slots <= picotte_slots_per_node:
+                    retval = "#SBATCH --ntasks-per-node={}".format(total_slots)
+                else:
+                    num_nodes = math.ceil(total_slots / picotte_slots_per_node)
+                    ntasks_per_node = picotte_slots_per_node
+                    retval = "#SBATCH --nodes={}\n#SBATCH --ntasks-per-node={}\n".format(num_nodes, ntasks_per_node)
             except ValueError:
                 error("Invalid value for pe slots. Slots must be an integer")
-                return ""
+            return retval
         else:
-            warn("Only fixed and shm PEs are handled in this script. Please make corrections yourself. Defaulting to 1 node with 16 slots.")
-            return "#SBATCH --nodes=1\n#SBATCH --ntasks-per-node 16\n"
+            warn(f"Only fixed and shm PEs are handled in this script. Please make corrections yourself. Defaulting to 1 node with {slots_per_node} slots.")
+            return "#SBATCH --nodes=1\n#SBATCH --ntasks-per-node={}\n".format(slots_per_node)
     return pe_re.sub(_repl, sge_options)
 
 def fix_restart(sge_options):
@@ -384,7 +395,7 @@ def convert_script(script, interpreter="/bin/bash"):
     slurm_script += "\n\n{}".format(commands)
 
     return slurm_script
-   
+
 if __name__ == "__main__":
     import argparse
     
