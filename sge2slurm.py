@@ -218,7 +218,7 @@ def fix_resources(sge_options):
                     elif len(m) > 2:
                         error("Improper value in the minutes field")
                 elif only_seconds_m is not None:
-                    time = only_seconds_m.groups(1)
+                    time = int(only_seconds_m.group(1))
                     s = time % 60
                     time = time // 60
                     m = time % 60
